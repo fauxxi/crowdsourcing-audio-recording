@@ -1,0 +1,44 @@
+version: '3'
+services:
+  nginx:
+    depends_on:
+      - backend
+      - frontend
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    ports:
+      - '3080:80'
+  backend:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./backend
+    volumes:
+      - /app/node_modules
+      - ./backend:/app
+    environment:
+      - AWS_ACCESS_KEY=YOUR_AWS_ACCESS_KEY
+      - AWS_SECRET_KEY=YOUR_AWS_SECRET_KEY
+      - AWS_REGION=eu-central-1
+      - DYNAMODB_TABLE_NAME=recorded-audio
+      - S3_BUCKET_NAME=recorded-audio-files
+      - JWT_TOKEN_SECRET=changeMeToYourSecretWords
+      - USERNAME=admin
+      - PASSWORD=password
+  frontend:
+    stdin_open: true
+    environment:
+      - WATCHPACK_POLLING=true
+      - AWS_ACCESS_KEY=YOUR_AWS_ACCESS_KEY
+      - AWS_SECRET_KEY=YOUR_AWS_SECRET_KEY
+      - AWS_REGION=eu-central-1
+      - DYNAMODB_TABLE_NAME=recorded-audio
+      - REACT_APP_BUCKET_NAME=recorded-audio-files
+      - WDS_SOCKET_PORT=0
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./frontend
+    volumes:
+      - /app/node_modules
+      - ./frontend:/app
